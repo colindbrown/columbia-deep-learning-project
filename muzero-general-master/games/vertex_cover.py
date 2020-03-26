@@ -9,13 +9,13 @@ from .abstract_game import AbstractGame
 
 
 class MuZeroConfig:
-    def __init__(self):
+    def __init__(self, graph_array): #initialize config based on graph
         self.seed = 0  # Seed for numpy, torch and the game
 
 
         ### Game
-        self.observation_shape = (1, 1, 4)  # Dimensions of the game observation, must be 3D. For a 1D array, please reshape it to (1, 1, length of array)
-        self.action_space = [i for i in range(2)]  # Fixed list of all possible actions. You should only edit the length
+        self.observation_shape = (1, graph_array.shape[0], graph_array.shape[1])  # Dimensions of the game observation, must be 3D. For a 1D array, please reshape it to (1, 1, length of array)
+        self.action_space = [i for i in range(graph_array.shape[0])]  # Fixed list of all possible actions. You should only edit the length
         self.players = [i for i in range(1)]  # List of players. You should only edit the length
         self.stacked_observations = 0  # Number of previous observation to add to the current observation
 
@@ -40,7 +40,7 @@ class MuZeroConfig:
         ### Network
         self.network = "fullyconnected"  # "resnet" / "fullyconnected"
         self.support_size = 10  # Value and reward are scaled (with almost sqrt) and encoded on a vector with a range of -support_size to support_size
-        
+
         # Residual Network
         self.blocks = 1  # Number of blocks in the ResNet
         self.channels = 2  # Number of channels in the ResNet
@@ -112,7 +112,7 @@ class Game(AbstractGame):
     def step(self, action):
         """
         Apply action to the game.
-        
+
         Args:
             action : action of the action_space to take.
 
@@ -127,7 +127,7 @@ class Game(AbstractGame):
         Return the current player.
 
         Returns:
-            The current player, it should be an element of the players list in the config. 
+            The current player, it should be an element of the players list in the config.
         """
         return 0
 
@@ -135,19 +135,19 @@ class Game(AbstractGame):
         """
         Should return the legal actions at each turn, if it is not available, it can return
         the whole action space. At each turn, the game have to be able to handle one of returned actions.
-        
+
         For complex game where calculating legal moves is too long, the idea is to define the legal actions
-        equal to the action space but to return a negative reward if the action is illegal.        
+        equal to the action space but to return a negative reward if the action is illegal.
 
         Returns:
             An array of integers, subset of the action space.
         """
-        return [i for i in range(2)]
+        return self.action_space
 
     def reset(self):
         """
         Reset the game for a new game.
-        
+
         Returns:
             Initial observation of the game.
         """
@@ -187,7 +187,6 @@ class Game(AbstractGame):
             String representing the action.
         """
         descriptions = [
-            "Push cart to the left",
-            "Push cart to the right"
+            "Select this vertex"
         ]
-        return "{}. {}".format(action_number, descriptions[action_number])
+        return "{}. {}".format(action_number, descriptions[0])
