@@ -6,6 +6,7 @@ from tensorflow_core.python.keras.layers.core import Dense
 from tensorflow_core.python.keras.models import Sequential
 
 import torch
+from torch import nn
 import torch.nn.functional as F
 from torch_geometric.nn import GCNConv
 
@@ -27,7 +28,7 @@ class Net(torch.nn.Module):
         x = F.dropout(x, training=self.training)
         x = self.conv2(x, edge_index)
 
-        return F.log_softmax(x, dim=1)
+        return F.Tanh(x, dim=representation_size)
 
 class VertexCoverNetwork(BaseNetwork):
 
@@ -44,12 +45,11 @@ class VertexCoverNetwork(BaseNetwork):
         self.value_support_size = math.ceil(math.sqrt(max_value)) + 1
 
         regularizer = regularizers.l2(weight_decay)
-        representation_network = Sequential([Dense(hidden_neurons, activation='relu', kernel_regularizer=regularizer),
-                                             Dense(representation_size, activation=representation_activation,
-                                                   kernel_regularizer=regularizer)])
+        representation_network = Net()
         value_network = Sequential([Dense(hidden_neurons, activation='relu', kernel_regularizer=regularizer),
                                     Dense(self.value_support_size, kernel_regularizer=regularizer)])
-        policy_network = Net()
+        policy_network = Sequential([Dense(hidden_neurons, activation='relu', kernel_regularizer=regularizer),
+                                     Dense(action_size, kernel_regularizer=regularizer)])
         dynamic_network = Sequential([Dense(hidden_neurons, activation='relu', kernel_regularizer=regularizer),
                                       Dense(representation_size, activation=representation_activation,
                                             kernel_regularizer=regularizer)])
