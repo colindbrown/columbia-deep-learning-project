@@ -1,4 +1,4 @@
-from config import MuZeroConfig, make_cartpole_config
+from config import MuZeroConfig, make_vertex_cover_config
 from networks.shared_storage import SharedStorage
 from self_play.self_play import run_selfplay, run_eval
 from training.replay_buffer import ReplayBuffer
@@ -32,5 +32,5 @@ def muzero(config: MuZeroConfig):
 
 
 if __name__ == '__main__':
-    config = make_cartpole_config()
+    config = make_vertex_cover_config()
     muzero(config)
