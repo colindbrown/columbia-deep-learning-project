@@ -47,13 +47,13 @@ class VertexCoverNetwork(BaseNetwork):
                 return F.Tanh(x, dim=representation_size)
 
         representation_network = Net()
-        value_network = nn.Sequential(nn.Linear(self.representation_size, hidden_neurons), nn.ReLU(),
+        value_network = nn.Sequential(nn.Linear(representation_size, hidden_neurons), nn.ReLU(),
                             nn.Linear(self.value_support_size, hidden_neurons))
-        policy_network = nn.Sequential(nn.Linear(self.representation_size, hidden_neurons), nn.ReLU(),
+        policy_network = nn.Sequential(nn.Linear(representation_size, hidden_neurons), nn.ReLU(),
                             nn.Linear(self.action_size, hidden_neurons))
-        dynamic_network = nn.Sequential(nn.Linear(self.representation_size+self.action_size, hidden_neurons), nn.ReLU(),
-                            nn.Linear(self.representation_size, hidden_neurons))
-        reward_network = nn.Sequential(nn.Linear(self.representation_size+self.action_size, hidden_neurons), nn.ReLU(),
+        dynamic_network = nn.Sequential(nn.Linear(representation_size+self.action_size, hidden_neurons), nn.ReLU(),
+                            nn.Linear(representation_size, hidden_neurons))
+        reward_network = nn.Sequential(nn.Linear(representation_size+self.action_size, hidden_neurons), nn.ReLU(),
                             nn.Linear(1, hidden_neurons))
 
 

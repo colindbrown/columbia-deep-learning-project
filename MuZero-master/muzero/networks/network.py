@@ -57,7 +57,7 @@ class InitialModel(nn.Module):
         self.value_network = value_network
         self.policy_network = policy_network
 
-    def call(self, image):
+    def forward(self, image):
         hidden_representation = self.representation_network(image)
         value = self.value_network(hidden_representation)
         policy_logits = self.policy_network(hidden_representation)
@@ -74,7 +74,7 @@ class RecurrentModel(nn.Module):
         self.value_network = value_network
         self.policy_network = policy_network
 
-    def call(self, conditioned_hidden):
+    def forward(self, conditioned_hidden):
         hidden_representation = self.dynamic_network(conditioned_hidden)
         reward = self.reward_network(conditioned_hidden)
         value = self.value_network(hidden_representation)
