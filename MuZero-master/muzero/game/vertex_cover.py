@@ -38,8 +38,8 @@ np.random.uniform(0,0.5))
     def step(self, action) -> int:
         """Execute one step of the game conditioned by the given action."""
         new_obs = to_nx(self.env)
-        new_obs.remove_node(action.index) #take action by removing node
-        new_obs.add_node(action.index) #now graph is not dynamic - can use GNN, each action only removes edges
+        new_obs.remove_node(action.index) #take action by removing node and attached edges
+        new_obs.add_node(action.index) #adds empty node to preserve indices
         self.actions = [Action(node) for node in list(new_obs.nodes())]
         self.done = nx.classes.function.is_empty(new_obs)
         self.env = to_pytorch(new_obs)
