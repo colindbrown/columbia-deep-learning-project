@@ -3,7 +3,8 @@ from abc import ABC, abstractmethod
 from typing import Dict, List, Callable
 
 import numpy as np
-from tensorflow_core.python.keras.models import Model
+import torch
+from torch import nn
 
 from game.game import Action
 
@@ -47,10 +48,10 @@ class UniformNetwork(AbstractNetwork):
         return NetworkOutput(0, 0, {Action(i): 1 / self.action_size for i in range(self.action_size)}, None)
 
 
-class InitialModel(Model):
+class InitialModel(nn.Module):
     """Model that combine the representation and prediction (value+policy) network."""
 
-    def __init__(self, representation_network: Model, value_network: Model, policy_network: Model):
+    def __init__(self, representation_network: nn.Module, value_network: nn.Module, policy_network: nn.Module):
         super(InitialModel, self).__init__()
         self.representation_network = representation_network
         self.value_network = value_network
@@ -63,10 +64,10 @@ class InitialModel(Model):
         return hidden_representation, value, policy_logits
 
 
-class RecurrentModel(Model):
+class RecurrentModel(nn.Module):
     """Model that combine the dynamic, reward and prediction (value+policy) network."""
 
-    def __init__(self, dynamic_network: Model, reward_network: Model, value_network: Model, policy_network: Model):
+    def __init__(self, dynamic_network: nn.Module, reward_network: nn.Module, value_network: nn.Module, policy_network: nn.Module):
         super(RecurrentModel, self).__init__()
         self.dynamic_network = dynamic_network
         self.reward_network = reward_network
@@ -84,8 +85,8 @@ class RecurrentModel(Model):
 class BaseNetwork(AbstractNetwork):
     """Base class that contains all the networks and models of MuZero."""
 
-    def __init__(self, representation_network: Model, value_network: Model, policy_network: Model,
-                 dynamic_network: Model, reward_network: Model):
+    def __init__(self, representation_network: nn.Module, value_network: nn.Module, policy_network: nn.Module,
+                 dynamic_network: nn.Module, reward_network: nn.Module):
         super().__init__()
         # Networks blocks
         self.representation_network = representation_network

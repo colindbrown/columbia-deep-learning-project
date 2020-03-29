@@ -1,6 +1,7 @@
 from typing import List
 import networkx as nx
 import gym
+import numpy as np
 
 from game.game import Action, AbstractGame
 
@@ -20,11 +21,11 @@ def to_nx(G):
 
 class VertexCover(AbstractGame):
 
-    def __init__(self, vertices = 10, discount: float):
+    def __init__(self, discount: float, vertices=10):
         super().__init__(discount)
         init_graph = nx.generators.random_graphs.gnp_random_graph(vertices,
 np.random.uniform(0,0.5))
-        self.actions = list(init_graph.nodes())
+        self.actions = [Action(node) for node in list(init_graph.nodes())]
         self.env = to_pytorch(init_graph)
         self.observations = [self.env]
         self.done = False
@@ -36,9 +37,10 @@ np.random.uniform(0,0.5))
 
     def step(self, action) -> int:
         """Execute one step of the game conditioned by the given action."""
-        new_obs = to_nx(self.env).remove_node(action.index)
+        new_obs = to_nx(self.env)
+        new_obs.remove_node(action.index) #take action by removing node
         new_obs.add_node(action.index) #now graph is not dynamic - can use GNN, each action only removes edges
-        self.actions = list(new_obs.nodes())
+        self.actions = [Action(node) for node in list(new_obs.nodes())]
         self.done = nx.classes.function.is_empty(new_obs)
         self.env = to_pytorch(new_obs)
         self.observations += [self.env]

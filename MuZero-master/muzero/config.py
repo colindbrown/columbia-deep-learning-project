@@ -3,9 +3,9 @@ from typing import Optional, Dict
 
 import tensorflow_core as tf
 
-from game.cartpole import CartPole
+from game.vertex_cover import VertexCover
 from game.game import AbstractGame
-from networks.cartpole_network import CartPoleNetwork, VertexCoverNetwork
+from networks.vertex_cover_network import VertexCoverNetwork
 from networks.network import BaseNetwork, UniformNetwork
 
 KnownBounds = collections.namedtuple('KnownBounds', ['min', 'max'])
@@ -15,6 +15,7 @@ class MuZeroConfig(object):
 
     def __init__(self,
                  game,
+                 vertices: int,
                  nb_training_loop: int,
                  nb_episodes: int,
                  nb_epochs: int,
@@ -32,6 +33,7 @@ class MuZeroConfig(object):
                  known_bounds: Optional[KnownBounds] = None):
         ### Environment
         self.game = game
+        self.vertices=vertices
 
         ### Self-Play
         self.action_space_size = action_space_size
@@ -80,7 +82,7 @@ class MuZeroConfig(object):
         # self.lr_decay_steps = lr_decay_steps
 
     def new_game(self) -> AbstractGame:
-        return self.game(self.discount)
+        return self.game(self.discount, self.vertices)
 
     def new_network(self) -> BaseNetwork:
         return self.network(**self.network_args)
@@ -95,20 +97,20 @@ class MuZeroConfig(object):
 def make_vertex_cover_config() -> MuZeroConfig:
     def visit_softmax_temperature(num_moves, training_steps):
         return 1.0
-    vertices = 10
-
+    num_vertices = 10
     return MuZeroConfig(
-        game=VertexCover(vertices),
+        game=VertexCover,
+        vertices = num_vertices,
         nb_training_loop=50,
         nb_episodes=20,
         nb_epochs=20,
-        network_args={'action_size': vertices,
-        #               'state_size': (10,10),
+        network_args={'action_size': num_vertices,
+                       'state_size': 20,
                        'representation_size': 20, #adjacency matrix of graph
                        'max_value': 500}, #no idea what this is
         network=VertexCoverNetwork,
-        action_space_size=vertices,
-        max_moves=vertices,
+        action_space_size=num_vertices,
+        max_moves=num_vertices,
         discount=0.99,
         dirichlet_alpha=0.25,
         num_simulations=11,  # Odd number perform better in eval mode
