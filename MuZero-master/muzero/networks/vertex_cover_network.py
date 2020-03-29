@@ -33,7 +33,7 @@ class VertexCoverNetwork(BaseNetwork):
         class Net(torch.nn.Module):
             def __init__(self):
                 super(Net, self).__init__()
-                self.conv1 = GCNConv(action_size, 16)
+                self.conv1 = GCNConv(1, 16)
                 self.conv2 = GCNConv(16, representation_size)
 
             def forward(self, data):

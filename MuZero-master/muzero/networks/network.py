@@ -58,7 +58,7 @@ class InitialModel(nn.Module):
         self.policy_network = policy_network
 
     def forward(self, image):
-        hidden_representation = self.representation_network(image)
+        hidden_representation = self.representation_network(torch.from_numpy(image))
         value = self.value_network(hidden_representation)
         policy_logits = self.policy_network(hidden_representation)
         return hidden_representation, value, policy_logits
