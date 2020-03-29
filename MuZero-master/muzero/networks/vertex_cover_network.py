@@ -44,6 +44,8 @@ class VertexCoverNetwork(BaseNetwork):
                 x = F.dropout(x, training=self.training)
                 x = self.conv2(x, edge_index)
 
+                #print('Representation outputted')
+
                 return F.Tanh(x, dim=representation_size)
 
         representation_network = Net()

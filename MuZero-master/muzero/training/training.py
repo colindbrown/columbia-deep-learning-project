@@ -28,9 +28,8 @@ def update_weights(optimizer: tf.keras.optimizers, network: BaseNetwork, batch):
     def loss():
         loss = 0
         image_batch, targets_init_batch, targets_time_batch, actions_time_batch, mask_time_batch, dynamic_mask_time_batch = batch
-
         # Initial step, from the real observation: representation + prediction networks
-        representation_batch, value_batch, policy_batch = network.initial_model(np.array(image_batch))
+        representation_batch, value_batch, policy_batch = network.initial_model(list(image_batch))
 
         # Only update the element with a policy target
         target_value_batch, _, target_policy_batch = zip(*targets_init_batch)

@@ -5,6 +5,7 @@ from typing import Dict, List, Callable
 import numpy as np
 import torch
 from torch import nn
+from torch_geometric.data import DataLoader
 
 from game.game import Action
 
@@ -58,7 +59,10 @@ class InitialModel(nn.Module):
         self.policy_network = policy_network
 
     def forward(self, image):
-        hidden_representation = self.representation_network(torch.from_numpy(image))
+        data_loader = DataLoader(image, batch_size=len(image))
+        print(data_loader)
+        for batch in data_loader:
+            hidden_representation = self.representation_network(batch)
         value = self.value_network(hidden_representation)
         policy_logits = self.policy_network(hidden_representation)
         return hidden_representation, value, policy_logits
