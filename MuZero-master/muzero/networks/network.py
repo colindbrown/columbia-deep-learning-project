@@ -1,7 +1,7 @@
 import typing
 from abc import ABC, abstractmethod
 from typing import Dict, List, Callable
-
+from game import vertex_cover
 import numpy as np
 import torch
 from torch import nn
@@ -59,12 +59,13 @@ class InitialModel(nn.Module):
         self.policy_network = policy_network
 
     def forward(self, image):
-        data_loader = DataLoader(image, batch_size=len(image))
-        print(data_loader)
+        torch_images = [vertex_cover.to_pytorch(im) for im in image]
+        data_loader = DataLoader(torch_images, batch_size=1)
         for batch in data_loader:
+            print(batch)
             hidden_representation = self.representation_network(batch)
-        value = self.value_network(hidden_representation)
-        policy_logits = self.policy_network(hidden_representation)
+            value = self.value_network(hidden_representation)
+            policy_logits = self.policy_network(hidden_representation)
         return hidden_representation, value, policy_logits
 
 

@@ -24,11 +24,11 @@ class VertexCover(AbstractGame):
     def __init__(self, discount: float, vertices=10):
         super().__init__(discount)
         init_graph = nx.generators.random_graphs.gnp_random_graph(vertices,
-np.random.uniform(0,0.5))
+np.random.uniform(0.5,1))
         self.actions = [Action(node) for node in list(init_graph.nodes())]
-        self.env = to_pytorch(init_graph)
+        self.env = init_graph
         self.observations = [self.env]
-        self.done = False
+        self.done = nx.classes.function.is_empty(self.env)
 
     @property
     def action_space_size(self) -> int:
@@ -37,12 +37,12 @@ np.random.uniform(0,0.5))
 
     def step(self, action) -> int:
         """Execute one step of the game conditioned by the given action."""
-        new_obs = to_nx(self.env)
+        new_obs = self.env.copy()
         new_obs.remove_node(action.index) #take action by removing node and attached edges
-        new_obs.add_node(action.index) #adds empty node to preserve indices
+        new_obs.add_node(action.index) #adds empty node to preserve action space
         self.actions = [Action(node) for node in list(new_obs.nodes())]
         self.done = nx.classes.function.is_empty(new_obs)
-        self.env = to_pytorch(new_obs)
+        self.env = new_obs
         self.observations += [self.env]
         return -1
 
