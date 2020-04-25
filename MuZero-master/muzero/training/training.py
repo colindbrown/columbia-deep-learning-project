@@ -1,7 +1,7 @@
 """Training module: this is where MuZero neurons are trained."""
 
 import numpy as np
-import tensorflow_core as tf
+#import tensorflow_core as tf
 from tensorflow_core.python.keras.losses import MSE
 import torch
 
@@ -22,10 +22,12 @@ def train_network(config: MuZeroConfig, storage: SharedStorage, replay_buffer: R
         storage.save_network(network.training_steps, network)
 
 
-def update_weights(optimizer: tf.keras.optimizers, network: BaseNetwork, batch):
+def update_weights(optimizer: torch.optim, network: BaseNetwork, batch):
     def scale_gradient(tensor, scale: float):
-        """Trick function to scale the gradient in tensorflow"""
-        return (1. - scale) * tf.stop_gradient(tensor) + scale * tensor
+        """Copied original tensor for non-gradient version """
+        tensor_ng = tensor
+        tensor_ng.requires_grad = False
+        return (1. - scale) * tensor_ng + scale * tensor
 
     def loss():
         loss = 0
@@ -54,17 +56,17 @@ def update_weights(optimizer: tf.keras.optimizers, network: BaseNetwork, batch):
             target_value_batch = torch.tensor(target_value_batch)[mask]
             target_reward_batch = torch.tensor(target_reward_batch)[mask]
             # Creating conditioned_representation: concatenate representations with actions batch
-            actions_batch = tf.one_hot(actions_batch, network.action_size)
+            actions_batch = torch.nn.functional.one_hot(actions_batch, network.action_size)
 
             # Recurrent step from conditioned representation: recurrent + prediction networks
-            conditioned_representation_batch = tf.concat((representation_batch, actions_batch), axis=1).numpy()
+            conditioned_representation_batch = np.concatenate(list(representation_batch, actions_batch), axis=1)
             representation_batch, reward_batch, value_batch, policy_batch = network.recurrent_model(
                 torch.from_numpy(conditioned_representation_batch))
 
             # Only execute BPTT for elements with a policy target
             target_policy_batch = [policy for policy, b in zip(target_policy_batch, mask) if b]
             mask_policy = list(map(lambda l: bool(l), target_policy_batch))
-            target_policy_batch = tf.convert_to_tensor([policy for policy in target_policy_batch if policy])
+            target_policy_batch = torch.from_numpy([policy for policy in target_policy_batch if policy])
             policy_batch = tf.boolean_mask(policy_batch, mask_policy)
 
             # Compute the partial loss
