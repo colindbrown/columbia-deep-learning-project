@@ -70,7 +70,7 @@ class MuZeroConfig(object):
         self.num_unroll_steps = 5
         self.td_steps = td_steps
 
-        self.weight_decay = 1e-4
+        self.weight_decay = 1e-3
         self.momentum = 0.9
 
         self.network_args = network_args
@@ -92,7 +92,7 @@ class MuZeroConfig(object):
 
     def new_optimizer(self, network) -> torch.optim.Optimizer:
         return torch.optim.SGD(network.get_variables(),
-             lr=self.lr, momentum=self.momentum)
+             lr=self.lr, momentum=self.momentum, weight_decay=self.weight_decay)
 
 
 def make_vertex_cover_config() -> MuZeroConfig:

@@ -68,8 +68,8 @@ def update_weights(optimizer: torch.optim, network: BaseNetwork, batch):
 
             # Compute the partial loss
             l = (torch.mean(loss_value(target_value_batch, value_batch, network.value_support_size)) +
-                 F.mse_loss(target_reward_batch, torch.squeeze(reward_batch)) )#+
-                 # torch.mean(torch.nn.BCEWithLogitsLoss(policy_batch, target_policy_batch)))#check this line
+                F.mse_loss(target_reward_batch, torch.squeeze(reward_batch)) +
+                torch.mean(torch.sum(- target_policy_batch * F.log_softmax(policy_batch, -1), -1)))
 
             # Scale the gradient of the loss by the average number of actions unrolled
             gradient_scale = 1. / len(actions_time_batch)
@@ -82,6 +82,10 @@ def update_weights(optimizer: torch.optim, network: BaseNetwork, batch):
 
     loss=loss()
     loss.backward()
+    if list(network.dynamic_network.parameters()):
+        print(list(network.dynamic_network.parameters()))
+        print(network.training_steps)
+        #breakpoint()
     optimizer.step()
     network.training_steps += 1
 
@@ -96,4 +100,4 @@ def loss_value(target_value_batch, value_batch, value_support_size: int):
     targets[range(batch_size), floor_value + 1] = rest
 
 
-    return torch.sum(- targets * F.log_softmax(value_batch, -1), -1).mean()
+    return torch.mean(torch.sum(- targets * F.log_softmax(value_batch, -1), -1))
