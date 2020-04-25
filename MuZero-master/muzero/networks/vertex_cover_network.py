@@ -31,6 +31,7 @@ class VertexCoverNetwork(BaseNetwork):
 
         #regularizer = regularizers.l2(weight_decay)
 
+
         class Net(torch.nn.Module):
             def __init__(self):
                 super(Net, self).__init__()
@@ -41,16 +42,47 @@ class VertexCoverNetwork(BaseNetwork):
             def forward(self, data):
                 x, edge_index = data.x, data.edge_index
 
-                x = self.conv1(x, edge_index)
+                x = self.conv1(x, edge_index.long())
                 x = F.relu(x)
                 #x = F.dropout(x, training=self.training)
-                x = self.conv2(x, edge_index)
+                x = self.conv2(x, edge_index.long())
                 x = F.relu(x)
                 #x = F.dropout(x, training=self.training)
                 x = self.flat(x).reshape(1,-1)
                 print(x.shape)
 
                 return torch.tanh(x)
+        """
+        class Net(torch.nn.Module):
+            def __init__(self):
+                super(Net, self).__init__()
+                self.conv1 = GCNConv(1, 16)
+                self.conv2 = GCNConv(16, 32)
+                self.conv_prob = GCNConv(16, 32)
+                self.dense = torch.nn.Linear(320, 10)
+
+            # expects a torch_geometric Data object
+            def forward(self, data):
+                num_nodes = data.num_nodes
+                x = torch.tensor([[1.0] for _ in range(num_nodes)])
+                edge_index = data.edge_index
+                x = self.conv1(x ,edge_index)
+                x = F.relu(x)
+                #x = F.dropout(x, training=self.training)
+                x = self.conv2(x ,edge_index)
+                x = F.relu(x)
+                #x = F.dropout(x, training=self.training)
+                #x = self.conv_prob(x, edge_index)
+                #x = F.relu(x)
+                #x = F.dropout(x, training=self.training)
+
+                x = x.reshape(-1, 320)
+                #print(x.shape)
+                probs = self.dense(x).reshape(-1, num_nodes)
+
+                return F.softmax(probs,dim=1)
+        #return F.sigmoid(probs)
+    """
 
         # class N2V(torch.nn.Module):
         #     def __init__(self, num_nodes, embedding_dim, walk_length, context_size):

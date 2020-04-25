@@ -1,7 +1,7 @@
 import collections
 from typing import Optional, Dict
 
-import tensorflow_core as tf
+import torch
 
 from game.vertex_cover import VertexCover
 from game.game import AbstractGame
@@ -90,8 +90,9 @@ class MuZeroConfig(object):
     def uniform_network(self) -> UniformNetwork:
         return UniformNetwork(self.action_space_size)
 
-    def new_optimizer(self) -> tf.keras.optimizers:
-        return tf.keras.optimizers.SGD(learning_rate=self.lr, momentum=self.momentum)
+    def new_optimizer(self, network) -> torch.optim.Optimizer:
+        return torch.optim.SGD(network.get_variables(),
+             lr=self.lr, momentum=self.momentum)
 
 
 def make_vertex_cover_config() -> MuZeroConfig:
@@ -114,7 +115,7 @@ def make_vertex_cover_config() -> MuZeroConfig:
         discount=0.99,
         dirichlet_alpha=0.25,
         num_simulations=11,  # Odd number perform better in eval mode
-        batch_size=512,
+        batch_size=32,#512,
         td_steps=10,
         visit_softmax_temperature_fn=visit_softmax_temperature,
         lr=0.05)

@@ -13,6 +13,7 @@ from training.replay_buffer import ReplayBuffer
 def train_network(config: MuZeroConfig, storage: SharedStorage, replay_buffer: ReplayBuffer, epochs: int):
     network = storage.current_network
     optimizer = storage.optimizer
+    optimizer.zero_grad()
 
     for _ in range(epochs):
         batch = replay_buffer.sample_batch(config.num_unroll_steps, config.td_steps)
@@ -35,12 +36,12 @@ def update_weights(optimizer: tf.keras.optimizers, network: BaseNetwork, batch):
         target_value_batch, _, target_policy_batch = zip(*targets_init_batch)
         mask_policy = list(map(lambda l: bool(l), target_policy_batch))
         target_policy_batch = list(filter(lambda l: bool(l), target_policy_batch))
-        policy_batch = tf.boolean_mask(policy_batch, mask_policy)
+        policy_batch = policy_batch[mask_policy]# tf.boolean_mask(policy_batch, mask_policy)
 
         # Compute the loss of the first pass
-        loss += tf.math.reduce_mean(loss_value(target_value_batch, value_batch, network.value_support_size))
-        loss += tf.math.reduce_mean(
-            tf.nn.softmax_cross_entropy_with_logits(logits=policy_batch, labels=target_policy_batch))
+        #loss += tf.math.reduce_mean(loss_value(target_value_batch, value_batch, network.value_support_size))
+        #loss += tf.math.reduce_mean(
+            #tf.nn.softmax_cross_entropy_with_logits(logits=policy_batch, labels=target_policy_batch))
 
         # Recurrent steps, from action and previous hidden state.
         for actions_batch, targets_batch, mask, dynamic_mask in zip(actions_time_batch, targets_time_batch,
@@ -80,7 +81,9 @@ def update_weights(optimizer: tf.keras.optimizers, network: BaseNetwork, batch):
 
         return loss
 
-    optimizer.minimize(loss=loss, var_list=network.cb_get_variables())
+    loss=loss()
+    loss.backward()
+    optimizer.step()
     network.training_steps += 1
 
 

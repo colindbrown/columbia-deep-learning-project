@@ -149,3 +149,10 @@ class BaseNetwork(AbstractNetwork):
                     for variables in variables_list]
 
         return get_variables
+
+    def get_variables(self):
+            networks = (self.representation_network, self.value_network, self.policy_network,
+                        self.dynamic_network, self.reward_network)
+            return [variables
+                    for variables_list in map(lambda n: n.parameters(), networks)
+                    for variables in variables_list]

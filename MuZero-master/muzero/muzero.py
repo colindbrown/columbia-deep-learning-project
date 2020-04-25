@@ -15,7 +15,8 @@ def muzero(config: MuZeroConfig):
     In contrast to the original MuZero algorithm this version doesn't works with
     multiple threads, therefore the training and self-play is done alternately.
     """
-    storage = SharedStorage(config.new_network(), config.uniform_network(), config.new_optimizer())
+    network =config.new_network()
+    storage = SharedStorage(network, config.uniform_network(), config.new_optimizer(network))
     replay_buffer = ReplayBuffer(config)
 
     for loop in range(config.nb_training_loop):

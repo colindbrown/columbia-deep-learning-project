@@ -1,4 +1,4 @@
-import tensorflow_core as tf
+import torch
 
 from networks.network import BaseNetwork, UniformNetwork, AbstractNetwork
 
@@ -6,7 +6,7 @@ from networks.network import BaseNetwork, UniformNetwork, AbstractNetwork
 class SharedStorage(object):
     """Save the different versions of the network."""
 
-    def __init__(self, network: BaseNetwork, uniform_network: UniformNetwork, optimizer: tf.keras.optimizers):
+    def __init__(self, network: BaseNetwork, uniform_network: UniformNetwork, optimizer: torch.optim.Optimizer):
         self._networks = {}
         self.current_network = network
         self.uniform_network = uniform_network

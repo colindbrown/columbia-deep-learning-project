@@ -24,7 +24,7 @@ class VertexCover(AbstractGame):
     def __init__(self, discount: float, vertices=10):
         super().__init__(discount)
         init_graph = nx.generators.random_graphs.gnp_random_graph(vertices,
-np.random.uniform(0.5,1))
+            np.random.uniform(0.5,1))
         self.actions = [Action(node) for node in list(init_graph.nodes())]
         self.env = init_graph
         self.observations = [self.env]
