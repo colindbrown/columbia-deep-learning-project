@@ -36,7 +36,8 @@ class VertexCoverNetwork(BaseNetwork):
             def __init__(self):
                 super(Net, self).__init__()
                 self.conv1 = GCNConv(1, 16)
-                self.conv2 = GCNConv(16, 1)
+                self.conv2 = GCNConv(16, 16)
+                self.conv3 = GCNConv(16, 1)
                 self.flat = torch.nn.Flatten()
 
             def forward(self, data):
@@ -48,8 +49,10 @@ class VertexCoverNetwork(BaseNetwork):
                 x = self.conv2(x, edge_index.long())
                 x = F.relu(x)
                 #x = F.dropout(x, training=self.training)
+                x = self.conv3(x, edge_index.long())
+                x = F.relu(x)
+
                 x = self.flat(x).reshape(1,-1)
-                print(x.shape)
 
                 return torch.tanh(x)
         """

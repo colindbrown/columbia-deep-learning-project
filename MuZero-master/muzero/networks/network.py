@@ -61,11 +61,18 @@ class InitialModel(nn.Module):
     def forward(self, image):
         torch_images = [vertex_cover.to_pytorch(im) for im in image]
         data_loader = DataLoader(torch_images, batch_size=1)
+        hidden_representation = []
+        value = []
+        policy_logits = []
         for batch in data_loader:
-            print(batch)
-            hidden_representation = self.representation_network(batch)
-            value = self.value_network(hidden_representation)
-            policy_logits = self.policy_network(hidden_representation)
+            hr = self.representation_network(batch)
+            hidden_representation.append(hr)
+            value.append(self.value_network(hr))
+            policy_logits.append(self.policy_network(hr))
+        hidden_representation = torch.stack(hidden_representation).squeeze()
+        value = torch.stack(value).squeeze()
+        policy_logits = torch.stack(policy_logits).squeeze()
+
         return hidden_representation, value, policy_logits
 
 

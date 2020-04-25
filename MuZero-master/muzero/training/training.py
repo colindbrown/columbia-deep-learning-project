@@ -3,6 +3,7 @@
 import numpy as np
 import tensorflow_core as tf
 from tensorflow_core.python.keras.losses import MSE
+import torch
 
 from config import MuZeroConfig
 from networks.network import BaseNetwork
@@ -49,9 +50,9 @@ def update_weights(optimizer: tf.keras.optimizers, network: BaseNetwork, batch):
             target_value_batch, target_reward_batch, target_policy_batch = zip(*targets_batch)
 
             # Only execute BPTT for elements with an action
-            representation_batch = tf.boolean_mask(representation_batch, dynamic_mask)
-            target_value_batch = tf.boolean_mask(target_value_batch, mask)
-            target_reward_batch = tf.boolean_mask(target_reward_batch, mask)
+            representation_batch = representation_batch[dynamic_mask]
+            target_value_batch = torch.tensor(target_value_batch)[mask]
+            target_reward_batch = torch.tensor(target_reward_batch)[mask]
             # Creating conditioned_representation: concatenate representations with actions batch
             actions_batch = tf.one_hot(actions_batch, network.action_size)
 
