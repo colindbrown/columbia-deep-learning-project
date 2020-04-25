@@ -67,13 +67,13 @@ def update_weights(optimizer: torch.optim, network: BaseNetwork, batch):
             target_policy_batch = [policy for policy, b in zip(target_policy_batch, mask) if b]
             mask_policy = list(map(lambda l: bool(l), target_policy_batch))
             target_policy_batch = torch.from_numpy([policy for policy in target_policy_batch if policy])
-            policy_batch = tf.boolean_mask(policy_batch, mask_policy)
+            policy_batch = policy_batch[mask_policy]
 
             # Compute the partial loss
-            l = (tf.math.reduce_mean(loss_value(target_value_batch, value_batch, network.value_support_size)) +
-                 MSE(target_reward_batch, tf.squeeze(reward_batch)) +
-                 tf.math.reduce_mean(
-                     tf.nn.softmax_cross_entropy_with_logits(logits=policy_batch, labels=target_policy_batch)))
+            l = (np.mean(loss_value(target_value_batch, value_batch, network.value_support_size)) +
+                 MSE(target_reward_batch, torch.squeeze(reward_batch)) +
+                 np.mean(
+                     torch.nn.BCEWithLogitsLoss(policy_batch, target_policy_batch)))#check this line
 
             # Scale the gradient of the loss by the average number of actions unrolled
             gradient_scale = 1. / len(actions_time_batch)
