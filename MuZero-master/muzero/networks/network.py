@@ -6,6 +6,8 @@ import numpy as np
 import torch
 from torch import nn
 from torch_geometric.data import DataLoader
+import networkx
+import math
 
 from game.game import Action
 
@@ -18,7 +20,7 @@ class NetworkOutput(typing.NamedTuple):
 
     @staticmethod
     def build_policy_logits(policy_logits):
-        return {Action(i): logit for i, logit in enumerate(policy_logits[0])}
+        return {Action(i): logit for i, logit in enumerate(policy_logits)}
 
 
 class AbstractNetwork(ABC):
@@ -112,25 +114,26 @@ class BaseNetwork(AbstractNetwork):
         self.recurrent_model = RecurrentModel(self.dynamic_network, self.reward_network, self.value_network,
                                               self.policy_network)
 
-    def initial_inference(self, image: np.array) -> NetworkOutput:
+    def initial_inference(self, image: networkx.Graph) -> NetworkOutput:
         """representation + prediction function"""
 
-        hidden_representation, value, policy_logits = self.initial_model.predict(np.expand_dims(image, 0))
-        output = NetworkOutput(value=self._value_transform(value),
+        hidden_representation, value, policy_logits = self.initial_model([image])
+        output = NetworkOutput(value=self._value_transform(value.data.numpy()),
                                reward=0.,
                                policy_logits=NetworkOutput.build_policy_logits(policy_logits),
-                               hidden_state=hidden_representation[0])
+                               hidden_state=hidden_representation.tolist())
         return output
 
     def recurrent_inference(self, hidden_state: np.array, action: Action) -> NetworkOutput:
         """dynamics + prediction function"""
 
         conditioned_hidden = self._conditioned_hidden_state(hidden_state, action)
-        hidden_representation, reward, value, policy_logits = self.recurrent_model.predict(conditioned_hidden)
-        output = NetworkOutput(value=self._value_transform(value),
+        conditioned_hidden = torch.tensor(conditioned_hidden, dtype=torch.float)
+        hidden_representation, reward, value, policy_logits = self.recurrent_model(conditioned_hidden)
+        output = NetworkOutput(value=self._value_transform(value.data.numpy()),
                                reward=self._reward_transform(reward),
                                policy_logits=NetworkOutput.build_policy_logits(policy_logits),
-                               hidden_state=hidden_representation[0])
+                               hidden_state=hidden_representation.tolist())
         return output
 
     @abstractmethod

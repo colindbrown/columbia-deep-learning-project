@@ -2,7 +2,7 @@
 
 import numpy as np
 #import tensorflow_core as tf
-from tensorflow_core.python.keras.losses import MSE
+import torch.nn.functional as F
 import torch
 
 from config import MuZeroConfig
@@ -25,9 +25,7 @@ def train_network(config: MuZeroConfig, storage: SharedStorage, replay_buffer: R
 def update_weights(optimizer: torch.optim, network: BaseNetwork, batch):
     def scale_gradient(tensor, scale: float):
         """Copied original tensor for non-gradient version """
-        tensor_ng = tensor
-        tensor_ng.requires_grad = False
-        return (1. - scale) * tensor_ng + scale * tensor
+        return (1. - scale) * tensor.detach() + scale * tensor
 
     def loss():
         loss = 0
@@ -56,24 +54,22 @@ def update_weights(optimizer: torch.optim, network: BaseNetwork, batch):
             target_value_batch = torch.tensor(target_value_batch)[mask]
             target_reward_batch = torch.tensor(target_reward_batch)[mask]
             # Creating conditioned_representation: concatenate representations with actions batch
-            actions_batch = torch.nn.functional.one_hot(actions_batch, network.action_size)
+            actions_batch = torch.nn.functional.one_hot(torch.tensor(actions_batch), network.action_size)
 
             # Recurrent step from conditioned representation: recurrent + prediction networks
-            conditioned_representation_batch = np.concatenate(list(representation_batch, actions_batch), axis=1)
-            representation_batch, reward_batch, value_batch, policy_batch = network.recurrent_model(
-                torch.from_numpy(conditioned_representation_batch))
+            conditioned_representation_batch = torch.cat([representation_batch, actions_batch.float()], axis=1)
+            representation_batch, reward_batch, value_batch, policy_batch = network.recurrent_model(conditioned_representation_batch)
 
             # Only execute BPTT for elements with a policy target
             target_policy_batch = [policy for policy, b in zip(target_policy_batch, mask) if b]
             mask_policy = list(map(lambda l: bool(l), target_policy_batch))
-            target_policy_batch = torch.from_numpy([policy for policy in target_policy_batch if policy])
+            target_policy_batch = torch.tensor([policy for policy in target_policy_batch if policy])
             policy_batch = policy_batch[mask_policy]
 
             # Compute the partial loss
-            l = (np.mean(loss_value(target_value_batch, value_batch, network.value_support_size)) +
-                 MSE(target_reward_batch, torch.squeeze(reward_batch)) +
-                 np.mean(
-                     torch.nn.BCEWithLogitsLoss(policy_batch, target_policy_batch)))#check this line
+            l = (torch.mean(loss_value(target_value_batch, value_batch, network.value_support_size)) +
+                 F.mse_loss(target_reward_batch, torch.squeeze(reward_batch)) )#+
+                 # torch.mean(torch.nn.BCEWithLogitsLoss(policy_batch, target_policy_batch)))#check this line
 
             # Scale the gradient of the loss by the average number of actions unrolled
             gradient_scale = 1. / len(actions_time_batch)
@@ -92,11 +88,12 @@ def update_weights(optimizer: torch.optim, network: BaseNetwork, batch):
 
 def loss_value(target_value_batch, value_batch, value_support_size: int):
     batch_size = len(target_value_batch)
-    targets = np.zeros((batch_size, value_support_size))
-    sqrt_value = np.sqrt(target_value_batch)
-    floor_value = np.floor(sqrt_value).astype(int)
+    targets = torch.zeros((batch_size, value_support_size))
+    sqrt_value = target_value_batch# torch.sqrt(target_value_batch) I don't know why it's using sqrt
+    floor_value = torch.floor(sqrt_value).long()
     rest = sqrt_value - floor_value
-    targets[range(batch_size), floor_value.astype(int)] = 1 - rest
-    targets[range(batch_size), floor_value.astype(int) + 1] = rest
+    targets[range(batch_size), floor_value] = 1 - rest
+    targets[range(batch_size), floor_value + 1] = rest
 
-    return tf.nn.softmax_cross_entropy_with_logits(logits=value_batch, labels=targets)
+
+    return torch.sum(- targets * F.log_softmax(value_batch, -1), -1).mean()
