@@ -59,7 +59,6 @@ def update_weights(optimizer: torch.optim, network: BaseNetwork, batch):
             # Recurrent step from conditioned representation: recurrent + prediction networks
             conditioned_representation_batch = torch.cat([representation_batch, actions_batch.float()], axis=1)
             representation_batch, reward_batch, value_batch, policy_batch = network.recurrent_model(conditioned_representation_batch)
-
             # Only execute BPTT for elements with a policy target
             target_policy_batch = [policy for policy, b in zip(target_policy_batch, mask) if b]
             mask_policy = list(map(lambda l: bool(l), target_policy_batch))
@@ -77,14 +76,14 @@ def update_weights(optimizer: torch.optim, network: BaseNetwork, batch):
 
             # Half the gradient of the representation
             representation_batch = scale_gradient(representation_batch, 0.5)
-
         return loss
 
     loss=loss()
     loss.backward()
-    if list(network.dynamic_network.parameters()):
-        print(list(network.dynamic_network.parameters()))
-        print(network.training_steps)
+    torch.nn.utils.clip_grad_norm_(network.dynamic_network.parameters(), 5)
+    # if list(network.dynamic_network.parameters()):
+    #     print(list(network.dynamic_network.parameters()))
+    #     print(network.training_steps)
         #breakpoint()
     optimizer.step()
     network.training_steps += 1
