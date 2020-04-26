@@ -41,10 +41,6 @@ class VertexCoverNetwork(BaseNetwork):
                 #print(data)
                 x = self.conv1(x, edge_index.long())
                 #print(self.conv1.weight)
-<<<<<<< HEAD
-=======
-                #print(x)
->>>>>>> 282cdd8f7af936775696aaa27d8ec1539dcf20d1
                 x = F.relu(x)
                 #print(x)
                 #x = F.dropout(x, training=self.training)
