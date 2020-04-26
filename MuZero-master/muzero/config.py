@@ -103,22 +103,22 @@ def make_vertex_cover_config() -> MuZeroConfig:
         game=VertexCover,
         vertices = num_vertices,
         nb_training_loop=50,
-        nb_episodes=20,
-        nb_epochs=20,
+        nb_episodes=500,
+        nb_epochs=50,
         network_args={'action_size': num_vertices,
                        'state_size': 20,
                        'representation_size': num_vertices, #adjacency matrix of graph
-                       'max_value': 50}, #no idea what this is
+                       'max_value': -num_vertices}, #no idea what this is
         network=VertexCoverNetwork,
         action_space_size=num_vertices,
         max_moves=num_vertices,
         discount=0.99,
         dirichlet_alpha=0.25,
         num_simulations=11,  # Odd number perform better in eval mode
-        batch_size=32,#512,
+        batch_size=512,
         td_steps=10,
         visit_softmax_temperature_fn=visit_softmax_temperature,
-        lr=0.05)
+        lr=0.001)
 
 # def make_cartpole_config() -> MuZeroConfig:
 #     def visit_softmax_temperature(num_moves, training_steps):
