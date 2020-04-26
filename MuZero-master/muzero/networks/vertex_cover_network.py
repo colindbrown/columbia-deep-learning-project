@@ -1,9 +1,6 @@
 import math
 
 import numpy as np
-# from tensorflow_core.python.keras import regularizers
-# from tensorflow_core.python.keras.layers.core import Dense
-# from tensorflow_core.python.keras.models import Sequential
 
 import torch
 from torch import nn
@@ -27,7 +24,7 @@ class VertexCoverNetwork(BaseNetwork):
                  representation_activation: str = 'tanh'):
         self.state_size = state_size
         self.action_size = action_size
-        self.value_support_size = math.ceil(math.sqrt(max_value)) + 1
+        self.value_support_size = math.ceil(math.sqrt(-max_value)) + 1
 
         #regularizer = regularizers.l2(weight_decay)
 
@@ -42,8 +39,8 @@ class VertexCoverNetwork(BaseNetwork):
             def forward(self, data):
                 x, edge_index = data.x, data.edge_index
                 x = self.conv1(x, edge_index.long())
-                print(self.conv1.weight)
-                print(x)
+                #print(self.conv1.weight)
+                #print(x)
                 x = F.relu(x)
                 #x = F.dropout(x, training=self.training)
                 x = self.conv2(x, edge_index.long())
@@ -124,7 +121,7 @@ class VertexCoverNetwork(BaseNetwork):
         value = self._softmax(value_support)
         value = np.dot(value, range(self.value_support_size))
         value = np.asscalar(value) ** 2
-        return value
+        return -value
 
     def _reward_transform(self, reward: np.array) -> float:
         return np.asscalar(reward)
