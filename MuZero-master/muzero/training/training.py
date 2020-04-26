@@ -85,11 +85,11 @@ def update_weights(optimizer: torch.optim, network: BaseNetwork, batch):
 
     loss=loss()
     loss.backward()
-    # torch.nn.utils.clip_grad_norm_(network.dynamic_network.parameters(), 2)
-    # torch.nn.utils.clip_grad_norm_(network.policy_network.parameters(), 2)
-    # torch.nn.utils.clip_grad_norm_(network.reward_network.parameters(), 2)
-    # torch.nn.utils.clip_grad_norm_(network.value_network.parameters(), 2)
-    # torch.nn.utils.clip_grad_norm_(network.representation_network.parameters(), 1)
+    torch.nn.utils.clip_grad_norm_(network.dynamic_network.parameters(), 2)
+    torch.nn.utils.clip_grad_norm_(network.policy_network.parameters(), 2)
+    torch.nn.utils.clip_grad_norm_(network.reward_network.parameters(), 2)
+    torch.nn.utils.clip_grad_norm_(network.value_network.parameters(), 2)
+    torch.nn.utils.clip_grad_norm_(network.representation_network.parameters(), 2)
     # if list(network.representation_network.parameters()):
     #     print(list(network.representation_network.parameters()))
     #     print(network.training_steps)

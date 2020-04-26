@@ -42,6 +42,7 @@ def muzero(config: MuZeroConfig):
     plt.title('MuZero Average Rewards')
     plt.xlabel('MuZero Iterations (Train/Eval)')
     plt.ylabel('Reward Score')
+    plt.legend(['Train score','Eval score'])
     plt.show()
 
     return storage.latest_network()
