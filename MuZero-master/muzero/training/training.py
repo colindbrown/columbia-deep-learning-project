@@ -40,9 +40,8 @@ def update_weights(optimizer: torch.optim, network: BaseNetwork, batch):
         policy_batch = policy_batch[mask_policy]# tf.boolean_mask(policy_batch, mask_policy)
 
         # Compute the loss of the first pass
-        #loss += tf.math.reduce_mean(loss_value(target_value_batch, value_batch, network.value_support_size))
-        #loss += tf.math.reduce_mean(
-            #tf.nn.softmax_cross_entropy_with_logits(logits=policy_batch, labels=target_policy_batch))
+        # loss += torch.mean(loss_value(torch.tensor(target_value_batch), torch.tensor(value_batch), network.value_support_size))
+        # loss += torch.mean(torch.sum(- target_policy_batch * F.log_softmax(policy_batch, -1), -1))
 
         # Recurrent steps, from action and previous hidden state.
         for actions_batch, targets_batch, mask, dynamic_mask in zip(actions_time_batch, targets_time_batch,
@@ -80,32 +79,53 @@ def update_weights(optimizer: torch.optim, network: BaseNetwork, batch):
 
             # Half the gradient of the representation
             representation_batch = scale_gradient(representation_batch, 0.5)
-        #print(loss)
+        print(loss)
         return loss
 
     loss=loss()
+    #breakpoint()
     loss.backward()
     torch.nn.utils.clip_grad_norm_(network.dynamic_network.parameters(), 2)
     torch.nn.utils.clip_grad_norm_(network.policy_network.parameters(), 2)
     torch.nn.utils.clip_grad_norm_(network.reward_network.parameters(), 2)
     torch.nn.utils.clip_grad_norm_(network.value_network.parameters(), 2)
-    torch.nn.utils.clip_grad_norm_(network.representation_network.parameters(), 2)
+    torch.nn.utils.clip_grad_norm_(network.representation_network.parameters(), 1)
     # if list(network.representation_network.parameters()):
     #     print(list(network.representation_network.parameters()))
     #     print(network.training_steps)
         #breakpoint()
     optimizer.step()
+
+    def has_nan(network):
+        return any(map(lambda x: (x.T > 1e10).any(), list(network.parameters())))
+        #return any(map(lambda x: torch.isnan(x.T).any(), list(network.parameters())))
+    if has_nan(network.representation_network):
+        print("representation")
+        print(list(network.representation_network.parameters()))
+    if has_nan(network.dynamic_network):
+        print("dynamic")
+        print(list(network.dynamic_network.parameters()))
+    if has_nan(network.policy_network):
+        print("policy")
+        print(list(network.policy_network.parameters()))
+    if has_nan(network.reward_network):
+        print("reward")
+        print(list(network.reward_network.parameters()))
+    if has_nan(network.value_network):
+        print("value")
+        print(list(network.value_network.parameters()))
     network.training_steps += 1
 
 
 def loss_value(target_value_batch, value_batch, value_support_size: int):
     batch_size = len(target_value_batch)
     targets = torch.zeros((batch_size, value_support_size))
-    sqrt_value = target_value_batch# torch.sqrt(target_value_batch) I don't know why it's using sqrt
+    sqrt_value = torch.sqrt(torch.abs(target_value_batch))
     floor_value = torch.floor(sqrt_value).long()
     rest = sqrt_value - floor_value
     targets[range(batch_size), floor_value] = 1 - rest
     targets[range(batch_size), floor_value + 1] = rest
+    #breakpoint()
 
 
     return torch.mean(torch.sum(- targets * F.log_softmax(value_batch, -1), -1))
