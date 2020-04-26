@@ -29,6 +29,15 @@ def muzero(config: MuZeroConfig):
         print(f"MuZero played {config.nb_episodes * (loop + 1)} "
               f"episodes and trained for {config.nb_epochs * (loop + 1)} epochs.\n")
 
+    plt.figure(1)
+    plt.plot(train_scores)
+    plt.plot(eval_scores)
+    plt.title('MuZero Average Rewards')
+    plt.xlabel('MuZero Iterations (Train/Eval)')
+    plt.ylabel('Reward Score')
+    plt.legend(['Train score','Eval score'])
+    plt.show()
+
     return storage.latest_network()
 
 
