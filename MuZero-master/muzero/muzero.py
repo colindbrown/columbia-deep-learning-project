@@ -19,16 +19,22 @@ def muzero(config: MuZeroConfig):
     storage = SharedStorage(network, config.uniform_network(), config.new_optimizer(network))
     replay_buffer = ReplayBuffer(config)
 
+    train_scores = []
+    eval_scores = []
     for loop in range(config.nb_training_loop):
         print("Training loop", loop)
         score_train = run_selfplay(config, storage, replay_buffer, config.nb_episodes)
         train_network(config, storage, replay_buffer, config.nb_epochs)
-
         print("Train score:", score_train)
-        print("Eval score:", run_eval(config, storage, 50))
+        score_eval = run_eval(config, storage, 50)
+        print("Eval score:", score_eval)
         print(f"MuZero played {config.nb_episodes * (loop + 1)} "
               f"episodes and trained for {config.nb_epochs * (loop + 1)} epochs.\n")
+        train_scores.append(score_train)
+        eval_scores.append(score_eval)
 
+
+    
     plt.figure(1)
     plt.plot(train_scores)
     plt.plot(eval_scores)
