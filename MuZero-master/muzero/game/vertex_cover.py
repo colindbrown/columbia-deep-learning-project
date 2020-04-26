@@ -29,6 +29,7 @@ class VertexCover(AbstractGame):
         self.env = init_graph
         self.observations = [self.env]
         self.done = nx.classes.function.is_empty(self.env)
+        self.cover = []
 
     @property
     def action_space_size(self) -> int:
@@ -44,6 +45,9 @@ class VertexCover(AbstractGame):
         self.done = nx.classes.function.is_empty(new_obs)
         self.env = new_obs
         self.observations += [self.env]
+        # if action.index in self.cover:
+        #     return 0
+        # self.cover.append(action.index)
         return -1
 
     def terminal(self) -> bool:

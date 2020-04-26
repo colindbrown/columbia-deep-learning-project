@@ -5,7 +5,7 @@ import numpy as np
 import torch
 from torch import nn
 import torch.nn.functional as F
-from torch_geometric.nn import GCNConv
+from torch_geometric.nn import GCNConv, SAGEConv
 from torch_geometric.nn.models import Node2Vec
 
 from game.game import Action
@@ -32,8 +32,8 @@ class VertexCoverNetwork(BaseNetwork):
         class Net(torch.nn.Module):
             def __init__(self):
                 super(Net, self).__init__()
-                self.conv1 = GCNConv(1, 16)
-                self.conv2 = GCNConv(16, 1)
+                self.conv1 = SAGEConv(1, 16)
+                self.conv2 = SAGEConv(16, 1)
                 self.flat = torch.nn.Flatten()
 
             def forward(self, data):

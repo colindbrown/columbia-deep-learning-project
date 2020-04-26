@@ -69,6 +69,9 @@ def update_weights(optimizer: torch.optim, network: BaseNetwork, batch):
                 F.mse_loss(target_reward_batch, torch.squeeze(reward_batch)) +
                 torch.mean(torch.sum(- target_policy_batch * F.log_softmax(policy_batch, -1), -1)))
 
+            print('ITERATION')
+            print(target_reward_batch)
+            print(reward_batch)
             # l = (torch.mean(loss_value(target_value_batch, value_batch,network.value_support_size)) +
             #     F.mse_loss(target_reward_batch, torch.squeeze(reward_batch)) +
             #     torch.mean(F.kl_div(F.log_softmax(policy_batch, -1), target_policy_batch)))
@@ -79,17 +82,26 @@ def update_weights(optimizer: torch.optim, network: BaseNetwork, batch):
 
             # Half the gradient of the representation
             representation_batch = scale_gradient(representation_batch, 0.5)
-        print(loss)
         return loss
 
     loss=loss()
     #breakpoint()
+    print(loss)
+    print('\n\n')
+    if loss>1000:
+        print(network.dynamic_network[2].weight.grad)
+        print(network.reward_network[2].weight.grad)
+        print(network.policy_network[2].weight.grad)
+        print(network.value_network[2].weight.grad)
+        print(network.representation_network.conv2.weight.grad)
+        print('\n\n')
     loss.backward()
-    torch.nn.utils.clip_grad_norm_(network.dynamic_network.parameters(), 5)
-    torch.nn.utils.clip_grad_norm_(network.policy_network.parameters(), 5)
-    torch.nn.utils.clip_grad_norm_(network.reward_network.parameters(), 5)
-    torch.nn.utils.clip_grad_norm_(network.value_network.parameters(), 5)
-    torch.nn.utils.clip_grad_norm_(network.representation_network.parameters(), 5)
+
+    # torch.nn.utils.clip_grad_norm_(network.dynamic_network.parameters(), 5)
+    # torch.nn.utils.clip_grad_norm_(network.policy_network.parameters(), 5)
+    # torch.nn.utils.clip_grad_norm_(network.reward_network.parameters(), 5)
+    # torch.nn.utils.clip_grad_norm_(network.value_network.parameters(), 5)
+    # torch.nn.utils.clip_grad_norm_(network.representation_network.parameters(), 5)
     # if list(network.representation_network.parameters()):
     #     print(list(network.representation_network.parameters()))
     #     print(network.training_steps)
