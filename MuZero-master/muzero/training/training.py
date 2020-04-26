@@ -40,8 +40,8 @@ def update_weights(optimizer: torch.optim, network: BaseNetwork, batch):
         policy_batch = policy_batch[mask_policy]# tf.boolean_mask(policy_batch, mask_policy)
 
         # Compute the loss of the first pass
-        # loss += torch.mean(loss_value(torch.tensor(target_value_batch), torch.tensor(value_batch), network.value_support_size))
-        # loss += torch.mean(torch.sum(- target_policy_batch * F.log_softmax(policy_batch, -1), -1))
+        loss += torch.mean(loss_value(torch.tensor(target_value_batch), value_batch, network.value_support_size))
+        loss += torch.mean(torch.sum(- torch.tensor(target_policy_batch) * F.log_softmax(policy_batch, -1), -1))
 
         # Recurrent steps, from action and previous hidden state.
         for actions_batch, targets_batch, mask, dynamic_mask in zip(actions_time_batch, targets_time_batch,
@@ -85,11 +85,11 @@ def update_weights(optimizer: torch.optim, network: BaseNetwork, batch):
     loss=loss()
     #breakpoint()
     loss.backward()
-    torch.nn.utils.clip_grad_norm_(network.dynamic_network.parameters(), 2)
-    torch.nn.utils.clip_grad_norm_(network.policy_network.parameters(), 2)
-    torch.nn.utils.clip_grad_norm_(network.reward_network.parameters(), 2)
-    torch.nn.utils.clip_grad_norm_(network.value_network.parameters(), 2)
-    torch.nn.utils.clip_grad_norm_(network.representation_network.parameters(), 1)
+    torch.nn.utils.clip_grad_norm_(network.dynamic_network.parameters(), 5)
+    torch.nn.utils.clip_grad_norm_(network.policy_network.parameters(), 5)
+    torch.nn.utils.clip_grad_norm_(network.reward_network.parameters(), 5)
+    torch.nn.utils.clip_grad_norm_(network.value_network.parameters(), 5)
+    torch.nn.utils.clip_grad_norm_(network.representation_network.parameters(), 5)
     # if list(network.representation_network.parameters()):
     #     print(list(network.representation_network.parameters()))
     #     print(network.training_steps)

@@ -118,7 +118,7 @@ def make_vertex_cover_config() -> MuZeroConfig:
         batch_size=512,
         td_steps=10,
         visit_softmax_temperature_fn=visit_softmax_temperature,
-        lr=0.001)
+        lr=0.05)
 
 # def make_cartpole_config() -> MuZeroConfig:
 #     def visit_softmax_temperature(num_moves, training_steps):
