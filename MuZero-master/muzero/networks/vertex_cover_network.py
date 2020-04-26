@@ -41,15 +41,15 @@ class VertexCoverNetwork(BaseNetwork):
 
             def forward(self, data):
                 x, edge_index = data.x, data.edge_index
-
                 x = self.conv1(x, edge_index.long())
+                print(self.conv1.weight)
+                print(x)
                 x = F.relu(x)
                 #x = F.dropout(x, training=self.training)
                 x = self.conv2(x, edge_index.long())
-                x = F.relu(x)
+                #x = F.relu(x)
 
                 x = self.flat(x).reshape(1,-1)
-
                 return torch.tanh(x)
         """
         class Net(torch.nn.Module):

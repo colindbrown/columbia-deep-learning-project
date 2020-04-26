@@ -70,22 +70,28 @@ def update_weights(optimizer: torch.optim, network: BaseNetwork, batch):
                 F.mse_loss(target_reward_batch, torch.squeeze(reward_batch)) +
                 torch.mean(torch.sum(- target_policy_batch * F.log_softmax(policy_batch, -1), -1)))
 
+            # l = (torch.mean(loss_value(target_value_batch, value_batch,network.value_support_size)) +
+            #     F.mse_loss(target_reward_batch, torch.squeeze(reward_batch)) +
+            #     torch.mean(F.kl_div(F.log_softmax(policy_batch, -1), target_policy_batch)))
+
             # Scale the gradient of the loss by the average number of actions unrolled
             gradient_scale = 1. / len(actions_time_batch)
             loss += scale_gradient(l, gradient_scale)
 
             # Half the gradient of the representation
             representation_batch = scale_gradient(representation_batch, 0.5)
+        #print(loss)
         return loss
 
     loss=loss()
     loss.backward()
-    # torch.nn.utils.clip_grad_norm_(network.dynamic_network.parameters(), 5)
-    # torch.nn.utils.clip_grad_norm_(network.policy_network.parameters(), 5)
-    # torch.nn.utils.clip_grad_norm_(network.reward_network.parameters(), 5)
-    # torch.nn.utils.clip_grad_norm_(network.value_network.parameters(), 5)
-    # if list(network.dynamic_network.parameters()):
-    #     print(list(network.dynamic_network.parameters()))
+    # torch.nn.utils.clip_grad_norm_(network.dynamic_network.parameters(), 2)
+    # torch.nn.utils.clip_grad_norm_(network.policy_network.parameters(), 2)
+    # torch.nn.utils.clip_grad_norm_(network.reward_network.parameters(), 2)
+    # torch.nn.utils.clip_grad_norm_(network.value_network.parameters(), 2)
+    # torch.nn.utils.clip_grad_norm_(network.representation_network.parameters(), 1)
+    # if list(network.representation_network.parameters()):
+    #     print(list(network.representation_network.parameters()))
     #     print(network.training_steps)
         #breakpoint()
     optimizer.step()

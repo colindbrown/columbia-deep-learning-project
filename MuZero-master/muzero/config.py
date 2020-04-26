@@ -70,7 +70,7 @@ class MuZeroConfig(object):
         self.num_unroll_steps = 5
         self.td_steps = td_steps
 
-        self.weight_decay = 1e-3
+        self.weight_decay = 1e-2
         self.momentum = 0.9
 
         self.network_args = network_args
@@ -108,7 +108,7 @@ def make_vertex_cover_config() -> MuZeroConfig:
         network_args={'action_size': num_vertices,
                        'state_size': 20,
                        'representation_size': num_vertices, #adjacency matrix of graph
-                       'max_value': 500}, #no idea what this is
+                       'max_value': 50}, #no idea what this is
         network=VertexCoverNetwork,
         action_space_size=num_vertices,
         max_moves=num_vertices,
