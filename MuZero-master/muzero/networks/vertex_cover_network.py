@@ -33,6 +33,7 @@ class VertexCoverNetwork(BaseNetwork):
             def __init__(self):
                 super(Net, self).__init__()
                 self.conv1 = SAGEConv(1, 16)
+                self.pool = TopKPooling(16, ratio=0.8)
                 self.conv2 = SAGEConv(16, 1)
                 self.flat = torch.nn.Flatten()
 
@@ -40,7 +41,8 @@ class VertexCoverNetwork(BaseNetwork):
                 x, edge_index = data.x, data.edge_index
                 x = self.conv1(x, edge_index.long())
                 x = F.relu(x)
-                x = F.dropout(x, training=self.training)
+                #x, edge_index, _, batch, _, _ = self.pool(x, edge_index.long())
+                #x = F.dropout(x, training=self.training)
                 x = self.conv2(x, edge_index.long())
                 x = self.flat(x).reshape(1,-1)
                 return torch.tanh(x)

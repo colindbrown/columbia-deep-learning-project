@@ -46,7 +46,7 @@ def muzero(config: MuZeroConfig):
     plt.legend(['Train score','Eval score'])
 
     plt.figure(2)
-    plt.plot(train_scores, color='green')
+    plt.plot(train_losses, color='green')
     plt.title('MuZero Training Loss')
     plt.xlabel('Epochs')
     plt.ylabel('Loss')

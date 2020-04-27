@@ -102,7 +102,7 @@ def make_vertex_cover_config() -> MuZeroConfig:
     return MuZeroConfig(
         game=VertexCover,
         vertices = num_vertices,
-        nb_training_loop=50,
+        nb_training_loop=15,
         nb_episodes=500,
         nb_epochs=50,
         network_args={'action_size': num_vertices,
@@ -118,7 +118,7 @@ def make_vertex_cover_config() -> MuZeroConfig:
         batch_size=512,
         td_steps=10,
         visit_softmax_temperature_fn=visit_softmax_temperature,
-        lr=0.05)
+        lr=0.005)
 
 # def make_cartpole_config() -> MuZeroConfig:
 #     def visit_softmax_temperature(num_moves, training_steps):
