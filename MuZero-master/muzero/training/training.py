@@ -42,11 +42,11 @@ def update_weights(optimizer: torch.optim, network: BaseNetwork, batch):
         target_policy_batch = list(filter(lambda l: bool(l), target_policy_batch))
         policy_batch = policy_batch[mask_policy]# tf.boolean_mask(policy_batch, mask_policy)
         # Compute the losses of the first pass
-        value_loss += torch.mean(loss_value(torch.tensor(target_value_batch), value_batch, network.value_support_size))
-        # value_loss += F.mse_loss(torch.tensor(target_value_batch), value_batch.reshape(-1))
+        # value_loss += torch.mean(loss_value(torch.tensor(target_value_batch), value_batch, network.value_support_size))
+        value_loss += F.mse_loss(torch.tensor(target_value_batch), value_batch.reshape(-1))
         policy_loss += torch.mean(torch.sum(- torch.tensor(target_policy_batch) * F.log_softmax(policy_batch, -1), -1))
-        loss += torch.mean(loss_value(torch.tensor(target_value_batch), value_batch, network.value_support_size))
-        loss += torch.mean(torch.sum(- torch.tensor(target_policy_batch) * F.log_softmax(policy_batch, -1), -1))
+        loss += value_loss
+        loss += policy_loss
 
         # Recurrent steps, from action and previous hidden state.
         for actions_batch, targets_batch, mask, dynamic_mask in zip(actions_time_batch, targets_time_batch,
@@ -70,8 +70,8 @@ def update_weights(optimizer: torch.optim, network: BaseNetwork, batch):
             policy_batch = policy_batch[mask_policy]
 
             # Compute the partial losses
-            p_value_loss = torch.mean(loss_value(target_value_batch, value_batch, network.value_support_size))
-            #p_value_loss = F.mse_loss(target_value_batch, value_batch.reshape(-1))
+            #p_value_loss = torch.mean(loss_value(target_value_batch, value_batch, network.value_support_size))
+            p_value_loss = F.mse_loss(target_value_batch, value_batch.reshape(-1))
             p_reward_loss = F.mse_loss(target_reward_batch, torch.squeeze(reward_batch))
             p_policy_loss = torch.mean(torch.sum(- target_policy_batch * F.log_softmax(policy_batch, -1), -1))
 
@@ -98,7 +98,7 @@ def update_weights(optimizer: torch.optim, network: BaseNetwork, batch):
     loss, reward_loss, policy_loss, value_loss =loss()
     #breakpoint()
     print(loss)
-    print('\n\n')
+    # print('\n\n')
     # loss.backward()
     value_loss.backward(retain_graph=True)
     policy_loss.backward(retain_graph=True)

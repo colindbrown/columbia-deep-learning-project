@@ -98,10 +98,10 @@ class VertexCoverNetwork(BaseNetwork):
         #                                 walk_length=5, context_size=2)
 
         representation_network = Net()
-        # value_network = nn.Sequential(nn.Linear(representation_size, hidden_neurons), nn.ReLU(),
-        #                     nn.Linear(hidden_neurons, self.state_size))
         value_network = nn.Sequential(nn.Linear(representation_size, hidden_neurons), nn.ReLU(),
-                            nn.Linear(hidden_neurons, self.value_support_size))
+                            nn.Linear(hidden_neurons, self.state_size))
+        # value_network = nn.Sequential(nn.Linear(representation_size, hidden_neurons), nn.ReLU(),
+        #                     nn.Linear(hidden_neurons, self.value_support_size))
         policy_network = nn.Sequential(nn.Linear(representation_size, hidden_neurons), nn.ReLU(),
                             nn.Linear(hidden_neurons, self.action_size))
         dynamic_network = nn.Sequential(nn.Linear(representation_size+self.action_size, hidden_neurons), nn.ReLU(),
