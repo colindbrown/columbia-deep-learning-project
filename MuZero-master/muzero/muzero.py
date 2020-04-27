@@ -22,10 +22,11 @@ def muzero(config: MuZeroConfig):
 
     train_scores = []
     eval_scores = []
+    train_losses = []
     for loop in range(config.nb_training_loop):
         print("Training loop", loop)
         score_train = run_selfplay(config, storage, replay_buffer, config.nb_episodes)
-        train_network(config, storage, replay_buffer, config.nb_epochs)
+        train_losses += train_network(config, storage, replay_buffer, config.nb_epochs)
         print("Train score:", score_train)
         score_eval = run_eval(config, storage, 50)
         print("Eval score:", score_eval)
@@ -35,7 +36,7 @@ def muzero(config: MuZeroConfig):
         eval_scores.append(score_eval)
 
 
-    
+
     plt.figure(1)
     plt.plot(train_scores)
     plt.plot(eval_scores)
@@ -43,6 +44,12 @@ def muzero(config: MuZeroConfig):
     plt.xlabel('MuZero Iterations (Train/Eval)')
     plt.ylabel('Reward Score')
     plt.legend(['Train score','Eval score'])
+
+    plt.figure(2)
+    plt.plot(train_scores, color='green')
+    plt.title('MuZero Training Loss')
+    plt.xlabel('Epochs')
+    plt.ylabel('Loss')
     plt.show()
 
     return storage.latest_network()

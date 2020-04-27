@@ -12,14 +12,16 @@ from training.replay_buffer import ReplayBuffer
 
 
 def train_network(config: MuZeroConfig, storage: SharedStorage, replay_buffer: ReplayBuffer, epochs: int):
+    losses = []
     network = storage.current_network
     optimizer = storage.optimizer
     optimizer.zero_grad()
 
     for _ in range(epochs):
         batch = replay_buffer.sample_batch(config.num_unroll_steps, config.td_steps)
-        update_weights(optimizer, network, batch)
+        losses.append(update_weights(optimizer, network, batch))
         storage.save_network(network.training_steps, network)
+    return losses
 
 
 def update_weights(optimizer: torch.optim, network: BaseNetwork, batch):
@@ -81,11 +83,16 @@ def update_weights(optimizer: torch.optim, network: BaseNetwork, batch):
             #     torch.mean(F.kl_div(F.log_softmax(policy_batch, -1), target_policy_batch)))
 
             # Scale the gradient of the loss by the average number of actions unrolled
-            gradient_scale = 1. / len(actions_time_batch)
-            loss += scale_gradient(l, gradient_scale)
-            reward_loss += scale_gradient(p_reward_loss, gradient_scale)
-            policy_loss += scale_gradient(p_policy_loss, gradient_scale)
-            value_loss += scale_gradient(p_value_loss, gradient_scale)
+            # gradient_scale = 1. / len(actions_time_batch)
+            # loss += scale_gradient(l, gradient_scale)
+            # reward_loss += scale_gradient(p_reward_loss, gradient_scale)
+            # policy_loss += scale_gradient(p_policy_loss, gradient_scale)
+            # value_loss += scale_gradient(p_value_loss, gradient_scale)
+
+            loss += l
+            reward_loss += p_reward_loss
+            policy_loss += p_policy_loss
+            value_loss += p_value_loss
 
             # Half the gradient of the representation
             #representation_batch = scale_gradient(representation_batch, 0.5)
@@ -97,14 +104,15 @@ def update_weights(optimizer: torch.optim, network: BaseNetwork, batch):
 
     loss, reward_loss, policy_loss, value_loss =loss()
     #breakpoint()
+    print(loss)
     # print(reward_loss)
     # print(policy_loss)
     # print(value_loss)
     # print('\n\n')
-    # loss.backward()
-    value_loss.backward(retain_graph=True)
-    policy_loss.backward(retain_graph=True)
-    reward_loss.backward()
+    loss.backward()
+    # value_loss.backward(retain_graph=True)
+    # policy_loss.backward(retain_graph=True)
+    # reward_loss.backward()
 
     torch.nn.utils.clip_grad_norm_(network.dynamic_network.parameters(), 2)
     torch.nn.utils.clip_grad_norm_(network.policy_network.parameters(), 2)
@@ -136,6 +144,7 @@ def update_weights(optimizer: torch.optim, network: BaseNetwork, batch):
         print("value")
         print(list(network.value_network.parameters()))
     network.training_steps += 1
+    return loss
 
 
 def loss_value(target_value_batch, value_batch, value_support_size: int):
