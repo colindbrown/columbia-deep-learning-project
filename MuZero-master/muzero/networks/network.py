@@ -117,7 +117,7 @@ class BaseNetwork(AbstractNetwork):
         """representation + prediction function"""
 
         hidden_representation, value, policy_logits = self.initial_model([image])
-        output = NetworkOutput(value=self._value_transform(value.data.numpy()),
+        output = NetworkOutput(value=value.data.numpy(),
                                reward=0.,
                                policy_logits=NetworkOutput.build_policy_logits(policy_logits),
                                hidden_state=hidden_representation.tolist())
@@ -129,7 +129,7 @@ class BaseNetwork(AbstractNetwork):
         conditioned_hidden = self._conditioned_hidden_state(hidden_state, action)
         conditioned_hidden = torch.tensor(conditioned_hidden, dtype=torch.float)
         hidden_representation, reward, value, policy_logits = self.recurrent_model(conditioned_hidden)
-        output = NetworkOutput(value=self._value_transform(value.data.numpy()),
+        output = NetworkOutput(value=value.data.numpy(),
                                reward=self._reward_transform(reward),
                                policy_logits=NetworkOutput.build_policy_logits(policy_logits),
                                hidden_state=hidden_representation.tolist())

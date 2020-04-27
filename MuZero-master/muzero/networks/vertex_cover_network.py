@@ -88,6 +88,18 @@ class VertexCoverNetwork(BaseNetwork):
                 x = self.l2(x)
                 return -1*torch.sigmoid(x)
 
+        class ValueNet(torch.nn.Module):
+            def __init__(self, insize, hidden_neurons):
+                super(ValueNet, self).__init__()
+                self.l1 = torch.nn.Linear(insize, hidden_neurons)
+                self.l2 = nn.Linear(hidden_neurons, 1)
+
+            def forward(self, data):
+                x = self.l1(data)
+                x = F.relu(x)
+                x = self.l2(x)
+                return -10*torch.sigmoid(x)
+
         # class N2V(torch.nn.Module):
         #     def __init__(self, num_nodes, embedding_dim, walk_length, context_size):
         #         self.model = Node2Vec(num_nodes=num_nodes, embedding_dim=embedding_dim,
@@ -98,8 +110,7 @@ class VertexCoverNetwork(BaseNetwork):
         #                                 walk_length=5, context_size=2)
 
         representation_network = Net()
-        value_network = nn.Sequential(nn.Linear(representation_size, hidden_neurons), nn.ReLU(),
-                            nn.Linear(hidden_neurons, self.state_size))
+        value_network = ValueNet(representation_size, hidden_neurons)
         # value_network = nn.Sequential(nn.Linear(representation_size, hidden_neurons), nn.ReLU(),
         #                     nn.Linear(hidden_neurons, self.value_support_size))
         policy_network = nn.Sequential(nn.Linear(representation_size, hidden_neurons), nn.ReLU(),
@@ -128,7 +139,6 @@ class VertexCoverNetwork(BaseNetwork):
         The value is obtained by first computing the expected value from the discrete support.
         Second, the inverse transform is then apply (the square function).
         """
-
         value = self._softmax(value_support)
         value = np.dot(value, range(self.value_support_size))
         value = np.asscalar(value) ** 2
