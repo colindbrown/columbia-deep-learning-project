@@ -5,7 +5,7 @@ import numpy as np
 import torch
 from torch import nn
 import torch.nn.functional as F
-from torch_geometric.nn import GCNConv, SAGEConv
+from torch_geometric.nn import GCNConv, SAGEConv, TopKPooling
 from torch_geometric.nn.models import Node2Vec
 
 from game.game import Action
@@ -38,17 +38,13 @@ class VertexCoverNetwork(BaseNetwork):
 
             def forward(self, data):
                 x, edge_index = data.x, data.edge_index
-                #print(data)
                 x = self.conv1(x, edge_index.long())
-                #print(self.conv1.weight)
                 x = F.relu(x)
-                #print(x)
-                #x = F.dropout(x, training=self.training)
+                x = F.dropout(x, training=self.training)
                 x = self.conv2(x, edge_index.long())
-                #x = F.relu(x)
-
                 x = self.flat(x).reshape(1,-1)
                 return torch.tanh(x)
+                return x
         """
         class Net(torch.nn.Module):
             def __init__(self):
@@ -80,6 +76,17 @@ class VertexCoverNetwork(BaseNetwork):
                 return F.softmax(probs,dim=1)
         #return F.sigmoid(probs)
     """
+        class RewardNet(torch.nn.Module):
+            def __init__(self, insize, hidden_neurons):
+                super(RewardNet, self).__init__()
+                self.l1 = torch.nn.Linear(insize, hidden_neurons)
+                self.l2 = nn.Linear(hidden_neurons, 1)
+
+            def forward(self, data):
+                x = self.l1(data)
+                x = F.relu(x)
+                x = self.l2(x)
+                return -1*torch.sigmoid(x)
 
         # class N2V(torch.nn.Module):
         #     def __init__(self, num_nodes, embedding_dim, walk_length, context_size):
@@ -91,14 +98,17 @@ class VertexCoverNetwork(BaseNetwork):
         #                                 walk_length=5, context_size=2)
 
         representation_network = Net()
+        # value_network = nn.Sequential(nn.Linear(representation_size, hidden_neurons), nn.ReLU(),
+        #                     nn.Linear(hidden_neurons, self.state_size))
         value_network = nn.Sequential(nn.Linear(representation_size, hidden_neurons), nn.ReLU(),
                             nn.Linear(hidden_neurons, self.value_support_size))
         policy_network = nn.Sequential(nn.Linear(representation_size, hidden_neurons), nn.ReLU(),
                             nn.Linear(hidden_neurons, self.action_size))
         dynamic_network = nn.Sequential(nn.Linear(representation_size+self.action_size, hidden_neurons), nn.ReLU(),
-                            nn.Linear(hidden_neurons, representation_size))
-        reward_network = nn.Sequential(nn.Linear(representation_size+self.action_size, hidden_neurons), nn.ReLU(),
-                            nn.Linear(hidden_neurons, 1))
+                            nn.Linear(hidden_neurons, representation_size), nn.Tanh())
+        reward_network = RewardNet(representation_size+self.action_size, hidden_neurons)
+        # reward_network = nn.Sequential(nn.Linear(representation_size+self.action_size, hidden_neurons), nn.ReLU(),
+        #                     nn.Linear(hidden_neurons, 1))
 
 
         # value_network = Sequential([Dense(hidden_neurons, activation='relu', kernel_regularizer=regularizer),

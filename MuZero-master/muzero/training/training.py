@@ -29,17 +29,22 @@ def update_weights(optimizer: torch.optim, network: BaseNetwork, batch):
 
     def loss():
         loss = 0
+        value_loss = 0
+        reward_loss = 0
+        policy_loss = 0
+
         image_batch, targets_init_batch, targets_time_batch, actions_time_batch, mask_time_batch, dynamic_mask_time_batch = batch
         # Initial step, from the real observation: representation + prediction networks
         representation_batch, value_batch, policy_batch = network.initial_model(list(image_batch))
-
         # Only update the element with a policy target
         target_value_batch, _, target_policy_batch = zip(*targets_init_batch)
         mask_policy = list(map(lambda l: bool(l), target_policy_batch))
         target_policy_batch = list(filter(lambda l: bool(l), target_policy_batch))
         policy_batch = policy_batch[mask_policy]# tf.boolean_mask(policy_batch, mask_policy)
-
-        # Compute the loss of the first pass
+        # Compute the losses of the first pass
+        value_loss += torch.mean(loss_value(torch.tensor(target_value_batch), value_batch, network.value_support_size))
+        # value_loss += F.mse_loss(torch.tensor(target_value_batch), value_batch.reshape(-1))
+        policy_loss += torch.mean(torch.sum(- torch.tensor(target_policy_batch) * F.log_softmax(policy_batch, -1), -1))
         loss += torch.mean(loss_value(torch.tensor(target_value_batch), value_batch, network.value_support_size))
         loss += torch.mean(torch.sum(- torch.tensor(target_policy_batch) * F.log_softmax(policy_batch, -1), -1))
 
@@ -64,14 +69,13 @@ def update_weights(optimizer: torch.optim, network: BaseNetwork, batch):
             target_policy_batch = torch.tensor([policy for policy in target_policy_batch if policy])
             policy_batch = policy_batch[mask_policy]
 
-            # Compute the partial loss
-            l = (torch.mean(loss_value(target_value_batch, value_batch, network.value_support_size)) +
-                F.mse_loss(target_reward_batch, torch.squeeze(reward_batch)) +
-                torch.mean(torch.sum(- target_policy_batch * F.log_softmax(policy_batch, -1), -1)))
+            # Compute the partial losses
+            p_value_loss = torch.mean(loss_value(target_value_batch, value_batch, network.value_support_size))
+            #p_value_loss = F.mse_loss(target_value_batch, value_batch.reshape(-1))
+            p_reward_loss = F.mse_loss(target_reward_batch, torch.squeeze(reward_batch))
+            p_policy_loss = torch.mean(torch.sum(- target_policy_batch * F.log_softmax(policy_batch, -1), -1))
 
-            print('ITERATION')
-            print(target_reward_batch)
-            print(reward_batch)
+            l = (value_loss+reward_loss+policy_loss)
             # l = (torch.mean(loss_value(target_value_batch, value_batch,network.value_support_size)) +
             #     F.mse_loss(target_reward_batch, torch.squeeze(reward_batch)) +
             #     torch.mean(F.kl_div(F.log_softmax(policy_batch, -1), target_policy_batch)))
@@ -79,23 +83,26 @@ def update_weights(optimizer: torch.optim, network: BaseNetwork, batch):
             # Scale the gradient of the loss by the average number of actions unrolled
             gradient_scale = 1. / len(actions_time_batch)
             loss += scale_gradient(l, gradient_scale)
+            reward_loss += scale_gradient(p_reward_loss, gradient_scale)
+            policy_loss += scale_gradient(p_policy_loss, gradient_scale)
+            value_loss += scale_gradient(p_value_loss, gradient_scale)
 
             # Half the gradient of the representation
-            representation_batch = scale_gradient(representation_batch, 0.5)
-        return loss
+            #representation_batch = scale_gradient(representation_batch, 0.5)
 
-    loss=loss()
+            # print('ITERATION')
+
+        return loss, reward_loss, policy_loss, value_loss
+        #return loss
+
+    loss, reward_loss, policy_loss, value_loss =loss()
     #breakpoint()
     print(loss)
     print('\n\n')
-    if loss>1000:
-        print(network.dynamic_network[2].weight.grad)
-        print(network.reward_network[2].weight.grad)
-        print(network.policy_network[2].weight.grad)
-        print(network.value_network[2].weight.grad)
-        print(network.representation_network.conv2.weight.grad)
-        print('\n\n')
-    loss.backward()
+    # loss.backward()
+    value_loss.backward(retain_graph=True)
+    policy_loss.backward(retain_graph=True)
+    reward_loss.backward()
 
     # torch.nn.utils.clip_grad_norm_(network.dynamic_network.parameters(), 5)
     # torch.nn.utils.clip_grad_norm_(network.policy_network.parameters(), 5)

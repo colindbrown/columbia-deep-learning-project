@@ -106,7 +106,7 @@ def make_vertex_cover_config() -> MuZeroConfig:
         nb_episodes=500,
         nb_epochs=50,
         network_args={'action_size': num_vertices,
-                       'state_size': 20,
+                       'state_size': 1,
                        'representation_size': num_vertices, #adjacency matrix of graph
                        'max_value': -num_vertices}, #no idea what this is
         network=VertexCoverNetwork,
