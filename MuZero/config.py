@@ -102,9 +102,9 @@ def make_vertex_cover_config() -> MuZeroConfig:
     return MuZeroConfig(
         game=VertexCover,
         vertices = num_vertices,
-        nb_training_loop=15,
+        nb_training_loop=10,
         nb_episodes=500,
-        nb_epochs=50,
+        nb_epochs=20,
         network_args={'action_size': num_vertices,
                        'state_size': 1,
                        'representation_size': num_vertices, #adjacency matrix of graph
@@ -118,94 +118,4 @@ def make_vertex_cover_config() -> MuZeroConfig:
         batch_size=512,
         td_steps=10,
         visit_softmax_temperature_fn=visit_softmax_temperature,
-        lr=0.005)
-
-# def make_cartpole_config() -> MuZeroConfig:
-#     def visit_softmax_temperature(num_moves, training_steps):
-#         return 1.0
-#
-#     return MuZeroConfig(
-#         game=CartPole,
-#         nb_training_loop=50,
-#         nb_episodes=20,
-#         nb_epochs=20,
-#         network_args={'action_size': 2,
-#                       'state_size': 4,
-#                       'representation_size': 4,
-#                       'max_value': 500},
-#         network=CartPoleNetwork,
-#         action_space_size=2,
-#         max_moves=1000,
-#         discount=0.99,
-#         dirichlet_alpha=0.25,
-#         num_simulations=11,  # Odd number perform better in eval mode
-#         batch_size=512,
-#         td_steps=10,
-#         visit_softmax_temperature_fn=visit_softmax_temperature,
-#         lr=0.05)
-
-
-"""
-Legacy configs from the DeepMind's pseudocode.
-
-def make_board_game_config(action_space_size: int, max_moves: int,
-                           dirichlet_alpha: float,
-                           lr_init: float) -> MuZeroConfig:
-    def visit_softmax_temperature(num_moves, training_steps):
-        if num_moves < 30:
-            return 1.0
-        else:
-            return 0.0  # Play according to the max.
-
-    return MuZeroConfig(
-        action_space_size=action_space_size,
-        max_moves=max_moves,
-        discount=1.0,
-        dirichlet_alpha=dirichlet_alpha,
-        num_simulations=800,
-        batch_size=2048,
-        td_steps=max_moves,  # Always use Monte Carlo return.
-        num_actors=3000,
-        lr_init=lr_init,
-        lr_decay_steps=400e3,
-        visit_softmax_temperature_fn=visit_softmax_temperature,
-        known_bounds=KnownBounds(-1, 1))
-
-
-def make_go_config() -> MuZeroConfig:
-    return make_board_game_config(
-        action_space_size=362, max_moves=722, dirichlet_alpha=0.03, lr_init=0.01)
-
-
-def make_chess_config() -> MuZeroConfig:
-    return make_board_game_config(
-        action_space_size=4672, max_moves=512, dirichlet_alpha=0.3, lr_init=0.1)
-
-
-def make_shogi_config() -> MuZeroConfig:
-    return make_board_game_config(
-        action_space_size=11259, max_moves=512, dirichlet_alpha=0.15, lr_init=0.1)
-
-
-def make_atari_config() -> MuZeroConfig:
-    def visit_softmax_temperature(num_moves, training_steps):
-        if training_steps < 500e3:
-            return 1.0
-        elif training_steps < 750e3:
-            return 0.5
-        else:
-            return 0.25
-
-    return MuZeroConfig(
-        action_space_size=18,
-        max_moves=27000,  # Half an hour at action repeat 4.
-        discount=0.997,
-        dirichlet_alpha=0.25,
-        num_simulations=50,
-        batch_size=1024,
-        td_steps=10,
-        num_actors=350,
-        lr_init=0.05,
-        lr_decay_steps=350e3,
-        visit_softmax_temperature_fn=visit_softmax_temperature)
-"""
+        lr=0.001)

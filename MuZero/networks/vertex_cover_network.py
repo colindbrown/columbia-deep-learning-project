@@ -26,9 +26,6 @@ class VertexCoverNetwork(BaseNetwork):
         self.action_size = action_size
         self.value_support_size = math.ceil(math.sqrt(-max_value)) + 1
 
-        #regularizer = regularizers.l2(weight_decay)
-
-
         class Net(torch.nn.Module):
             def __init__(self):
                 super(Net, self).__init__()
@@ -47,37 +44,7 @@ class VertexCoverNetwork(BaseNetwork):
                 x = self.flat(x).reshape(1,-1)
                 return torch.tanh(x)
                 return x
-        """
-        class Net(torch.nn.Module):
-            def __init__(self):
-                super(Net, self).__init__()
-                self.conv1 = GCNConv(1, 16)
-                self.conv2 = GCNConv(16, 32)
-                self.conv_prob = GCNConv(16, 32)
-                self.dense = torch.nn.Linear(320, 10)
 
-            # expects a torch_geometric Data object
-            def forward(self, data):
-                num_nodes = data.num_nodes
-                x = torch.tensor([[1.0] for _ in range(num_nodes)])
-                edge_index = data.edge_index
-                x = self.conv1(x ,edge_index)
-                x = F.relu(x)
-                #x = F.dropout(x, training=self.training)
-                x = self.conv2(x ,edge_index)
-                x = F.relu(x)
-                #x = F.dropout(x, training=self.training)
-                #x = self.conv_prob(x, edge_index)
-                #x = F.relu(x)
-                #x = F.dropout(x, training=self.training)
-
-                x = x.reshape(-1, 320)
-                #print(x.shape)
-                probs = self.dense(x).reshape(-1, num_nodes)
-
-                return F.softmax(probs,dim=1)
-        #return F.sigmoid(probs)
-    """
         class RewardNet(torch.nn.Module):
             def __init__(self, insize, hidden_neurons):
                 super(RewardNet, self).__init__()
@@ -102,37 +69,14 @@ class VertexCoverNetwork(BaseNetwork):
                 x = self.l2(x)
                 return -10*torch.sigmoid(x)
 
-        # class N2V(torch.nn.Module):
-        #     def __init__(self, num_nodes, embedding_dim, walk_length, context_size):
-        #         self.model = Node2Vec(num_nodes=num_nodes, embedding_dim=embedding_dim,
-        #                         walk_length=walk_length, context_size=context_size)
-        #     def forward(self, data):
-        #         return self.model(data)
-        # representation_network = N2V(num_nodes=state_size, embedding_dim=1,
-        #                                 walk_length=5, context_size=2)
-
         representation_network = Net()
         value_network = ValueNet(representation_size, hidden_neurons)
-        # value_network = nn.Sequential(nn.Linear(representation_size, hidden_neurons), nn.ReLU(),
-        #                     nn.Linear(hidden_neurons, self.value_support_size))
         policy_network = nn.Sequential(nn.Linear(representation_size, hidden_neurons), nn.ReLU(),
                             nn.Linear(hidden_neurons, self.action_size))
         dynamic_network = nn.Sequential(nn.Linear(representation_size+self.action_size, hidden_neurons), nn.ReLU(),
                             nn.Linear(hidden_neurons, representation_size), nn.Tanh())
         reward_network = RewardNet(representation_size+self.action_size, hidden_neurons)
-        # reward_network = nn.Sequential(nn.Linear(representation_size+self.action_size, hidden_neurons), nn.ReLU(),
-        #                     nn.Linear(hidden_neurons, 1))
 
-
-        # value_network = Sequential([Dense(hidden_neurons, activation='relu', kernel_regularizer=regularizer),
-        #                             Dense(self.value_support_size, kernel_regularizer=regularizer)])
-        # policy_network = Sequential([Dense(hidden_neurons, activation='relu', kernel_regularizer=regularizer),
-        #                              Dense(action_size, kernel_regularizer=regularizer)])
-        # dynamic_network = Sequential([Dense(hidden_neurons, activation='relu', kernel_regularizer=regularizer),
-        #                               Dense(representation_size, activation=representation_activation,
-        #                                     kernel_regularizer=regularizer)])
-        # reward_network = Sequential([Dense(16, activation='relu', kernel_regularizer=regularizer),
-        #                              Dense(1, kernel_regularizer=regularizer)])
 
         super().__init__(representation_network, value_network, policy_network, dynamic_network, reward_network)
 
