@@ -65,6 +65,8 @@ class InitialModel(nn.Module):
         hidden_representation = []
         value = []
         policy_logits = []
+
+        """ Create stacked torch tensors for the returned values of each input"""
         for im in torch_images:
             hr = self.representation_network(im)
             hidden_representation.append(hr)

@@ -26,9 +26,9 @@ class VertexCoverNetwork(BaseNetwork):
         self.action_size = action_size
         self.value_support_size = math.ceil(math.sqrt(-max_value)) + 1
 
-        class Net(torch.nn.Module):
+        class RepNet(torch.nn.Module):
             def __init__(self):
-                super(Net, self).__init__()
+                super(RepNet, self).__init__()
                 self.conv1 = SAGEConv(1, 16)
                 self.pool = TopKPooling(16, ratio=0.8)
                 self.conv2 = SAGEConv(16, 1)
@@ -69,10 +69,15 @@ class VertexCoverNetwork(BaseNetwork):
                 x = self.l2(x)
                 return -10*torch.sigmoid(x)
 
-        representation_network = Net()
+        """ function h from the MuZero paper """
+        representation_network = RepNet()
+
+        """ function f from the MuZero paper """
         value_network = ValueNet(representation_size, hidden_neurons)
         policy_network = nn.Sequential(nn.Linear(representation_size, hidden_neurons), nn.ReLU(),
                             nn.Linear(hidden_neurons, self.action_size))
+
+        """ function g from the MuZero paper """
         dynamic_network = nn.Sequential(nn.Linear(representation_size+self.action_size, hidden_neurons), nn.ReLU(),
                             nn.Linear(hidden_neurons, representation_size), nn.Tanh())
         reward_network = RewardNet(representation_size+self.action_size, hidden_neurons)

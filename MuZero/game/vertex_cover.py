@@ -45,10 +45,7 @@ class VertexCover(AbstractGame):
         self.done = nx.classes.function.is_empty(new_obs)
         self.env = new_obs
         self.observations += [self.env]
-        # if action.index in self.cover:
-        #     return 0
-        # self.cover.append(action.index)
-        return -1
+        return -1 # -1 reward as minimum size cover is desired
 
     def terminal(self) -> bool:
         """Is the game is finished?"""

@@ -63,8 +63,6 @@ class MuZeroConfig(object):
         self.nb_episodes = nb_episodes  # Nb of episodes per training loop
         self.nb_epochs = nb_epochs  # Nb of epochs per training loop
 
-        # self.training_steps = int(1000e3)
-        # self.checkpoint_interval = int(1e3)
         self.window_size = int(1e6)
         self.batch_size = batch_size
         self.num_unroll_steps = 5
@@ -76,10 +74,6 @@ class MuZeroConfig(object):
         self.network_args = network_args
         self.network = network
         self.lr = lr
-        # Exponential learning rate schedule
-        # self.lr_init = lr_init
-        # self.lr_decay_rate = 0.1
-        # self.lr_decay_steps = lr_decay_steps
 
     def new_game(self) -> AbstractGame:
         return self.game(self.discount, self.vertices)
@@ -108,13 +102,13 @@ def make_vertex_cover_config() -> MuZeroConfig:
         network_args={'action_size': num_vertices,
                        'state_size': 1,
                        'representation_size': num_vertices, #adjacency matrix of graph
-                       'max_value': -num_vertices}, #no idea what this is
+                       'max_value': -num_vertices}, # maximum negative reward possible
         network=VertexCoverNetwork,
         action_space_size=num_vertices,
         max_moves=num_vertices,
         discount=0.99,
         dirichlet_alpha=0.25,
-        num_simulations=11,  # Odd number perform better in eval mode
+        num_simulations=11,
         batch_size=512,
         td_steps=10,
         visit_softmax_temperature_fn=visit_softmax_temperature,
