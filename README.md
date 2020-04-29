@@ -20,8 +20,8 @@ We then implemented a the AlphaZero algorithm to approximate the MCTS policy of 
 To view and run this code, run `jupyter notebook` and navigate to **AlphaZero/alphazero.ipynb**.
 
 References:
--- https://arxiv.org/abs/1905.11623
--- https://arxiv.org/abs/1712.01815
+* https://arxiv.org/abs/1905.11623
+* https://arxiv.org/abs/1712.01815
 
 ## MuZero
 We finally adapted an implementation of the MuZero algorithm to compare the performance of its fully learned model. Our implementation is adapted from [this repository](https://github.com/johan-gras/MuZero) by Johan Gras, with the entire respository converted from using Tensorflow to PyTorch for compatibility with torch-geometric.
@@ -29,9 +29,9 @@ We finally adapted an implementation of the MuZero algorithm to compare the perf
 To run the code, run `python MuZero/muzero.py`
 
 Notes about implementation:
--- We use torch-geometric GraphSage layers for the representation network
--- Our dynamics and prediction functions are each split into two networks, so that each network is only predicting one quantity
--- We also update the loss functions from the original paper.
+* We use torch-geometric GraphSage layers for the representation network
+* Our dynamics and prediction functions are each split into two networks, so that each network is only predicting one quantity
+* We also update the loss functions from the original paper.
 
 References:
-__ https://arxiv.org/abs/1911.08265
+* https://arxiv.org/abs/1911.08265
